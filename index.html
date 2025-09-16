@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Movie Finder - Home</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav>
+    <div class="logo">🎬 MovieFinder</div>
+    <ul>
+      <li><a href="index.html" class="active">Home</a></li>
+      <li><a href="browse.html">Browse</a></li>
+      <li><a href="favorites.html">Favorites</a></li>
+      <li><a href="news.html">News</a></li>
+      <li><a href="about.html">About</a></li>
+    </ul>
+  </nav>
+
+  <!-- Sticky Search -->
+  <div class="search-container" id="searchBar">
+    <input type="text" id="searchInput" placeholder="Search for movies...">
+    <button onclick="searchMovies()">🔍 Search</button>
+  </div>
+
+  <h2 class="section-title">Search Results</h2>
+  <div id="movies" class="movies"></div>
+
+  <h2 class="section-title">Recommended Movies</h2>
+  <div id="recommended" class="movies"></div>
+
+  <h2 class="section-title">Latest Drops</h2>
+  <div class="carousel-container">
+    <button class="carousel-btn prev">❮</button>
+    <div id="latest" class="carousel"></div>
+    <button class="carousel-btn next">❯</button>
+  </div>
+  <div id="latestDrops" class="movies"></div>
+
+  <!-- Modal -->
+  <div id="movieModal" class="modal" style="display: none;">
+    <div id="modalBody" class="modal-content">
+      <span class="close-btn" onclick="closeModal()">&times;</span>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    async function loadLatestDrops() {
+      const container = document.getElementById('latestDrops');
+      if (!container) return;
+      container.innerHTML = '<p>Loading latest movies...</p>';
+      const data = await fetch(`https://www.omdbapi.com/?apikey=523991b5&s=movie&y=${new Date().getFullYear()}`)
+        .then(response => response.json())
+        .catch(() => null);
+      if (data && data.Response === "True") {
+        container.innerHTML = '';
+        data.Search.forEach(movie => {
+          const div = document.createElement('div');
+          div.className = 'movie';
+          div.innerHTML = `
+            <img src="${movie.Poster !== "N/A" ? movie.Poster : 'https://via.placeholder.com/200x270'}" alt="${movie.Title}">
+            <h3>${movie.Title}</h3>
+            <p>${movie.Year}</p>
+          `;
+          div.addEventListener('click', () => showDetails(movie.imdbID));
+          container.appendChild(div);
+        });
+      } else {
+        container.innerHTML = '<p>No latest movies found.</p>';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadLatestDrops);
+  </script>
+</body>
+</html>

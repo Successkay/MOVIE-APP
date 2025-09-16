@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Movie Finder - Browse</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <nav>
+    <div class="logo">🎬 MovieFinder</div>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="browse.html" class="active">Browse</a></li>
+      <li><a href="favorites.html">Favorites</a></li>
+      <li><a href="news.html">News</a></li>
+      <li><a href="about.html">About</a></li>
+    </ul>
+  </nav>
+
+  <h1>Browse Movies</h1>
+  <p class="page-info">Filter by Genre</p>
+  <div class="filter-container">
+    <select id="genreSelect" onchange="loadMoviesByGenre()">
+      <option value="">Select Genre</option>
+      <option value="Action">Action</option>
+      <option value="Comedy">Comedy</option>
+      <option value="Drama">Drama</option>
+      <option value="Horror">Horror</option>
+      <option value="Romance">Romance</option>
+      <option value="Sci-Fi">Sci-Fi</option>
+    </select>
+  </div>
+  <div id="browseResults" class="movies"></div>
+
+  <h2>Latest Drops</h2>
+  <div id="latestDrops" class="movies"></div>
+
+  <div id="movieModal" class="modal" style="display: none;">
+    <div id="modalBody" class="modal-content">
+      <span class="close-btn" onclick="closeModal()">&times;</span>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    async function loadMoviesByGenre() {
+      const genre = document.getElementById('genreSelect')?.value;
+      const container = document.getElementById('browseResults');
+      if (!genre || !container) return;
+      container.innerHTML = '<p>Loading movies...</p>';
+      const data = await fetch(`https://www.omdbapi.com/?apikey=523991b5&s=${encodeURIComponent(genre)}&type=movie`)
+        .then(response => response.json())
+        .catch(() => null);
+      if (data && data.Response === "True") {
+        container.innerHTML = '';
+        data.Search.forEach(movie => {
+          const div = document.createElement('div');
+          div.className = 'movie';
+          div.innerHTML = `
+            <img src="${movie.Poster !== "N/A" ? movie.Poster : 'https://via.placeholder.com/200x270'}" alt="${movie.Title}">
+            <h3>${movie.Title}</h3>
+            <p>${movie.Year}</p>
+            <button class="favorite-btn" data-movie='${JSON.stringify(movie)}' onclick="toggleFavorite(${JSON.stringify(movie).replace(/"/g, '&quot;')})">
+              ${isFavorite(movie) ? 'Remove from Favorites' : 'Add to Favorites'}
+            </button>
+          `;
+          container.appendChild(div);
+        });
+      } else {
+        container.innerHTML = '<p>No movies found for this genre.</p>';
+      }
+    }
+
+    async function loadLatestDrops() {
+      const container = document.getElementById('latestDrops');
+      if (!container) return;
+      container.innerHTML = '<p>Loading latest movies...</p>';
+      const data = await fetch(`https://www.omdbapi.com/?apikey=523991b5&s=movie&y=${new Date().getFullYear()}`)
+        .then(response => response.json())
+        .catch(() => null);
+      if (data && data.Response === "True") {
+        container.innerHTML = '';
+        data.Search.forEach(movie => {
+          const div = document.createElement('div');
+          div.className = 'movie';
+          div.innerHTML = `
+            <img src="${movie.Poster !== "N/A" ? movie.Poster : 'https://via.placeholder.com/200x270'}" alt="${movie.Title}">
+            <h3>${movie.Title}</h3>
+            <p>${movie.Year}</p>
+          `;
+          container.appendChild(div);
+        });
+      } else {
+        container.innerHTML = '<p>No latest movies found.</p>';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadLatestDrops);
+  </script>
+</body>
+</html>
